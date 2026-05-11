@@ -1,10 +1,56 @@
-name: First Workflow
-on: workflow_dispatch
+name: Manual Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_env:
+        description: 'デプロイ環境'
+        required: true
+        default: 'Dev'
+        type: choice
+        options:
+          - Dev
+          - Prd
+          - Sit
+      deploy_mode:
+        description: 'デプロイモード'
+        required: true
+        default: 'deploy_main'
+        type: choice
+        options:
+          - deploy_main
+          - deploy_test
+          - remove_test
+
 jobs:
-  first-jobs:
+  execute-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Print greeting
-        run: echo "Hello"
-      - name: Print goodbye
-        run: echo "Goodbye"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Display Selected Options
+        run: |
+          echo "Selected Environment: ${{ github.event.inputs.deploy_env }}"
+          echo "Selected Mode: ${{ github.event.inputs.deploy_mode }}"
+
+      - name: Conditional Execution
+        run: |
+          case "${{ github.event.inputs.deploy_mode }}" in
+            "deploy_main")
+              echo "Executing main deployment to ${{ github.event.inputs.deploy_env }}..."
+              # Add your main deployment commands here
+              ;;
+            "deploy_test")
+              echo "Executing test deployment to ${{ github.event.inputs.deploy_env }}..."
+              # Add your test deployment commands here
+              ;;
+            "remove_test")
+              echo "Removing test environment from ${{ github.event.inputs.deploy_env }}..."
+              # Add your removal commands here
+              ;;
+            *)
+              echo "Unknown mode selected"
+              exit 1
+              ;;
+          esac
